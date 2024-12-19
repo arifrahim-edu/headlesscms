@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import requestLogger from './shared/middlewares/requestLogger';
 import indexRouter from './core/routes/index';
 import path from 'path';
+import { AppDataSource } from "./config/data-source";
 import './shared/utils/consoleOverride';
 
 class App {
@@ -16,7 +17,7 @@ class App {
   constructor() {
     this.app = express();
     this.config();
-    this.databaseConnections();
+    this.initializeDatabase();
     this.middlewares();
     this.routes();
     this.views();
@@ -35,13 +36,29 @@ class App {
 
   }
 
+/**
+ * Establishes a connection to the database.
+ * Ensures the application has access to the necessary data storage.
+ * Handles any connection errors and logs them appropriately.
+ * @private
+ */
+private async databaseConnections() {
+  try {
+    await AppDataSource.initialize();
+    console.log("Database connection established successfully.");
+  } catch (error) {
+    console.error("Database connection failed:", error);
+    process.exit(1); // Exit the application if the database connection fails
+  }
+}
+
   /**
-   * Establishes a connection to the database.
-   * Ensures the application has access to the necessary data storage.
-   * Handles any connection errors and logs them appropriately.
+   * Initializes database connection asynchronously.
+   * Ensures the database connection is established before proceeding.
    * @private
    */
-  private databaseConnections() {
+  private async initializeDatabase() {
+    await this.databaseConnections();
   }
 
   /**
