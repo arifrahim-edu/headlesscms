@@ -3,8 +3,10 @@ import bodyParser from 'body-parser';
 import requestLogger from './shared/middlewares/requestLogger';
 import indexRouter from './core/routes/index';
 import path from 'path';
-import { AppDataSource } from "./config/data-source";
 import './shared/utils/consoleOverride';
+import dotenv from 'dotenv';
+import "reflect-metadata";
+import { AppDataSource } from "./config/data-source";
 
 class App {
   public app: Express;

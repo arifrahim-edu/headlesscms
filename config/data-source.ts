@@ -10,7 +10,8 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME, // Database username
   password: process.env.DB_PASSWORD, // Database password
   database: process.env.DB_DATABASE, // Database name
-  synchronize: process.env.DB_SYNCHRONIZE === "true", // Auto synchronize schema
+  synchronize: process.env.DB_SYNCHRONIZE === "false", // Always set to false when using migrations, Auto synchronize schema
+  // synchronize: process.env.DB_SYNCHRONIZE === "true", // Auto synchronize schema
   logging: process.env.DB_LOGGING === "true", // Enable query logging
   entities: ["core/models/*.ts"], // Path to entity files
   migrations: ["core/migrations/*.ts"], // Path to migration files
