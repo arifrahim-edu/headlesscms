@@ -3,22 +3,34 @@ import { AppDataSource } from "../../config/data-source";
 import { Role } from "../models/Role";
 
 export class RoleController {
-  static async getAllRoles(req: Request, res: Response): Promise<void> {
-    const { page = 1, pageSize = 10 } = req.query; // Default page size: 10
+
+static async getAllRoles(req: Request, res: Response): Promise<void> {
+  const { page = 1, pageSize = 10, context, active } = req.query;
+
+  try {
     const roleRepository = AppDataSource.getRepository(Role);
-  
+    const filters: any = {};
+
+    if (context) filters.context = context as string;
+    if (active !== undefined) filters.active = Number(active);
+
     const [roles, total] = await roleRepository.findAndCount({
+      where: filters,
       skip: (Number(page) - 1) * Number(pageSize),
       take: Number(pageSize),
     });
-  
+
     res.json({
       data: roles,
       total,
       page: Number(page),
       pageSize: Number(pageSize),
     });
+  } catch (error) {
+    console.error("Error fetching roles:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
+}
 
   static async getRolesByContext(req: Request, res: Response): Promise<void> {
     const { context } = req.query;
@@ -44,47 +56,93 @@ export class RoleController {
     }
   }
   
-
+  static async getRolesWithRelations(req: Request, res: Response): Promise<void> {
+    try {
+      const roleRepository = AppDataSource.getRepository(Role);
+      const roles = await roleRepository.find({ relations: ["authorities", "menus"] });
+  
+      res.json(roles);
+    } catch (error) {
+      console.error("Error fetching roles with relations:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  }
+  
   static async getRole(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const roleRepository = AppDataSource.getRepository(Role);
-    const role = await roleRepository.findOneBy({ role: id });
-    if (!role) {
-      res.status(404).json({ message: "Role not found" });
-      return;
+  
+    try {
+      const roleRepository = AppDataSource.getRepository(Role);
+      const role = await roleRepository.findOneBy({ role: id });
+  
+      if (!role) {
+        res.status(404).json({ message: "Role not found" });
+        return;
+      }
+  
+      res.json(role);
+    } catch (error) {
+      console.error("Error fetching role:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    res.json(role);
   }
 
-  static async createRole(req: Request, res: Response) {
-    const roleRepository = AppDataSource.getRepository(Role);
-    const newRole = roleRepository.create(req.body);
-    const result = await roleRepository.save(newRole);
-    res.status(201).json(result);
+  static async createRole(req: Request, res: Response): Promise<void> {
+    try {
+      const roleData = req.body;
+      const roleRepository = AppDataSource.getRepository(Role);
+  
+      const newRole = roleRepository.create(roleData);
+      const savedRole = await roleRepository.save(newRole);
+  
+      res.status(201).json(savedRole);
+    } catch (error) {
+      console.error("Error creating role:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
   }
 
   static async updateRole(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const roleRepository = AppDataSource.getRepository(Role);
-    const role = await roleRepository.findOneBy({ role: id });
-    if (!role) {
-      res.status(404).json({ message: "Role not found" });
-      return;
+    const updates = req.body;
+  
+    try {
+      const roleRepository = AppDataSource.getRepository(Role);
+      const role = await roleRepository.findOneBy({ role: id });
+  
+      if (!role) {
+        res.status(404).json({ message: "Role not found" });
+        return;
+      }
+  
+      Object.assign(role, updates);
+      const updatedRole = await roleRepository.save(role);
+  
+      res.json(updatedRole);
+    } catch (error) {
+      console.error("Error updating role:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    Object.assign(role, req.body);
-    const result = await roleRepository.save(role);
-    res.json(result);
   }
+  
 
   static async deleteRole(req: Request, res: Response): Promise<void> {
     const { id } = req.params;
-    const roleRepository = AppDataSource.getRepository(Role);
-    const result = await roleRepository.delete({ role: id });
-    if (result.affected === 0) {
-      res.status(404).json({ message: "Role not found" });
-      return;
+  
+    try {
+      const roleRepository = AppDataSource.getRepository(Role);
+      const result = await roleRepository.delete(id);
+  
+      if (result.affected === 0) {
+        res.status(404).json({ message: "Role not found" });
+        return;
+      }
+  
+      res.status(204).send();
+    } catch (error) {
+      console.error("Error deleting role:", error);
+      res.status(500).json({ message: "Internal server error" });
     }
-    res.status(204).send();
   }
 
   static async createRoles(req: Request, res: Response): Promise<void> {
