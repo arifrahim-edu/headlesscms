@@ -16,6 +16,9 @@ import {
   
     @Column({ type: "varchar", length: 50, nullable: true })
     home!: string;
+
+    @Column({ type: "varchar", length: 50, nullable: true })
+    context!: string;
   
     @Column({ type: "int", nullable: true })
     priority!: number;

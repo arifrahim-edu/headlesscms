@@ -11,7 +11,9 @@
     "start": "nodemon --ext 'ts,js,mjs,json' --exec 'ts-node server.ts'",
     "dev": "ts-node-dev --respawn --transpile-only server.ts",
     "watch": "tsc -w",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migration": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:generate ./core/migrations/InitialMigration -d ./config/data-source.ts",
+    "migrate": "npx ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js migration:run -d ./config/data-source.ts"
   },
   "keywords": [],
   "author": "",
